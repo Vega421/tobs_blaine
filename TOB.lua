@@ -1,18 +1,18 @@
 TOB = {}
 TOB.timer = 300 -- countdown to secure lock in seconds (time needed to pass to door to be closed back)
 TOB.hacktime = 1000 -- first door open delay to make time for police to arrive and roleplay in miliseconds (I highly recommend to leave it be (2.5 min default))
-TOB.maxcash = 7500 -- maximum amount of cash a pile can hold
+TOB.maxcash = 6500 -- maximum amount of cash a pile can hold
 TOB.mincash = 3000 -- minimum amount of cash a pile holds
 TOB.black = false -- enable this if you want blackmoney as a reward
 TOB.blackmoney = "dirty_money" -- item you receive when you use TOB.blackmoney
 TOB.cooldown = 600 -- amount of time to do the heist again in seconds (15min)
-TOB.mincops = 0 -- minimum required cops to start mission
+TOB.mincops = 4 -- minimum required cops to start mission
 TOB.vaultdoor = "v_ilev_cbankvauldoor01"
 TOB.door = "v_ilev_cbankvaulgate01"
 TOB.office = "v_ilev_gb_teldr"
-TOB.PolicePermission = "police.pc" -- permission for the cops
+TOB.PolicePermission = "police.service" -- permission for the cops
 TOB.Banks = {
-    F1 = {
+    B1 = {
         doors = {    
             startloc = {x = -105.44020080566, y = 6472.8505859375, z = 31.62672996521, h = 10.240501403809, animcoords = {x = -105.46078491211, y = 6471.5737304688, z = 30.626703262329, h = 43.363094329834}}
         },

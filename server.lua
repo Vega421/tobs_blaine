@@ -3,9 +3,14 @@ local Proxy = module("vrp", "lib/Proxy")
 
 vRP = Proxy.getInterface("vRP")
 
+HT = nil
+
+TriggerEvent('HT_base:getBaseObjects', function(obj) HT = obj end)
+
+
 ServerPlayers = true  
 Doors = { 
-    ["F1"] = {{loc = vector3(-105.15334320068,6472.7075195312,31.626728057861), h = 42.639282226562, txtloc = vector3(-105.34651184082,6472.708984375,31.626726150513), obj = nil, locked = false}, {loc = vector3(-105.84294891357,6475.4428710938,31.62670135498), txtloc = vector3(-105.84294891357,6475.4428710938,31.62670135498), obj = nil, locked = false}},
+    ["B1"] = {{loc = vector3(-105.15334320068,6472.7075195312,31.626728057861), h = 42.639282226562, txtloc = vector3(-105.34651184082,6472.708984375,31.626726150513), obj = nil, locked = false}, {loc = vector3(-105.84294891357,6475.4428710938,31.62670135498), txtloc = vector3(-105.84294891357,6475.4428710938,31.62670135498), obj = nil, locked = false}},
 }
 
 
@@ -18,8 +23,8 @@ AddEventHandler("TOB_fh:startcheck", function(bank)
 
     for i = 1, #Players, 1 do
         local xPlayer = vRP.getUserId({Players[i]})
-
-        if vRP.hasPermission({xPlayer, TOB.PolicePermission}) then
+        if vRP.hasGroup({xPlayer, "Politi-Job"}) then
+      --  if vRP.hasPermission({xPlayer, TOB.PolicePermission}) then
             copcount = copcount + 1
         end
     end
@@ -35,16 +40,16 @@ AddEventHandler("TOB_fh:startcheck", function(bank)
                     TriggerClientEvent("TOB_fh:outcome", _source, true, bank)
                     TriggerClientEvent("TOB_fh:policenotify", -1, bank)
                 else
-                    TriggerClientEvent("TOB_fh:outcome", _source, false, "This bank recently robbed. You need to wait "..math.floor((TOB.cooldown - (os.time() - TOB.Banks[bank].lastrobbed)) / 60)..":"..math.fmod((TOB.cooldown - (os.time() - TOB.Banks[bank].lastrobbed)), 60))
+                    TriggerClientEvent("TOB_fh:outcome", _source, false, "Denne bank er fornyligt været røveret du skal vente "..math.floor((TOB.cooldown - (os.time() - TOB.Banks[bank].lastrobbed)) / 60)..":"..math.fmod((TOB.cooldown - (os.time() - TOB.Banks[bank].lastrobbed)), 60))
                 end
             else
-                TriggerClientEvent("TOB_fh:outcome", _source, false, "This bank is currently being robbed.")
+                TriggerClientEvent("TOB_fh:outcome", _source, false, "Der er et røveri igang i banken.")
             end
         else
-            TriggerClientEvent("TOB_fh:outcome", _source, false, "You don't have a malicious access card.")
+            TriggerClientEvent("TOB_fh:outcome", _source, false, "Du har ikke et idkort.")
         end
     else
-        TriggerClientEvent("TOB_fh:outcome", _source, false, "There is not enough police in the city.")
+        TriggerClientEvent("TOB_fh:outcome", _source, false, "Der er ikke nok Politi i byen.")
     end
 end)
 
@@ -130,7 +135,8 @@ RegisterServerEvent('TOB_fh:CheckCop')
 AddEventHandler('TOB_fh:CheckCop', function()
     local xPlayer = vRP.getUserId({source})
     
-	if vRP.hasPermission({xPlayer,TOB.PolicePermission}) then
+    if vRP.hasGroup({xPlayer, "Politi-Job"}) then
+	--if vRP.hasPermission({xPlayer,TOB.PolicePermission}) then
 		TriggerClientEvent('TOB_fh:IsCop', xPlayer)
 	else
 		TriggerClientEvent('TOB_fh:IsNOTCop', xPlayer)

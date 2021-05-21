@@ -1,13 +1,20 @@
--- Cop System
+HT = nil
+
+Citizen.CreateThread(function()
+    while HT == nil do
+        TriggerEvent('HT_base:getBaseObjects', function(obj) HT = obj end)
+        Citizen.Wait(0)
+    end
+end)
+
+
+-- Cop System 
 Citizen.CreateThread(function()
     while true do
         Citizen.Wait(3000)
         TriggerServerEvent('TOB_fh:CheckCop')
     end
 end)
-
-
-
 
 
 RegisterNetEvent('TOB_fh:IsCop')
@@ -19,13 +26,13 @@ AddEventHandler('TOB_fh:IsNOTCop', function()
     IsPolice = false
 end)
 
-Freeze = {F1 = 0}
+Freeze = {B1 = 0}
 PlayerData = nil
 IsPolice = false
-Check = {F1 = false}
-SearchChecks = {F1 = false}
+Check = {B1 = false}
+SearchChecks = {B1 = false}
 LootCheck = {
-    F1 = {Stop = false, Loot1 = false, Loot2 = false, Loot3 = false}
+    B1 = {Stop = false, Loot1 = false, Loot2 = false, Loot3 = false}
 }
 Doors = {}
 local disableinput = false
@@ -86,7 +93,7 @@ AddEventHandler("TOB_fh:startLoot_c", function(data, name)
                         local dst1 = GetDistanceBetweenCoords(pedcoords, data.trolley1.x, data.trolley1.y, data.trolley1.z + 1, true)
 
                         if dst1 < 5 and not IsPolice then
-                            DrawText3D(data.trolley1.x, data.trolley1.y, data.trolley1.z+1, "[~r~E~w~] Loot the Cash", 0.40)
+                            DrawText3D(data.trolley1.x, data.trolley1.y, data.trolley1.z+1, "[~r~E~w~] Tag pengene", 0.40)
                             if dst1 < 0.75 and IsControlJustReleased(0, 38) then
                                 TriggerServerEvent("TOB_fh:lootup", name, "Loot1")
                                 StartGrab(name)
@@ -98,7 +105,7 @@ AddEventHandler("TOB_fh:startLoot_c", function(data, name)
                         local dst1 = GetDistanceBetweenCoords(pedcoords, data.trolley2.x, data.trolley2.y, data.trolley2.z+1, true)
 
                         if dst1 < 5 and not IsPolice then
-                            DrawText3D(data.trolley2.x, data.trolley2.y, data.trolley2.z+1, "[~r~E~w~] Loot the Cash", 0.40)
+                            DrawText3D(data.trolley2.x, data.trolley2.y, data.trolley2.z+1, "[~r~E~w~] Tag pengene", 0.40)
                             if dst1 < 1 and IsControlJustReleased(0, 38) then
                                 TriggerServerEvent("TOB_fh:lootup", name, "Loot2")
                                 StartGrab(name)
@@ -110,7 +117,7 @@ AddEventHandler("TOB_fh:startLoot_c", function(data, name)
                         local dst1 = GetDistanceBetweenCoords(pedcoords, data.trolley3.x, data.trolley3.y, data.trolley3.z+1, true)
 
                         if dst1 < 5 and not IsPolice then
-                            DrawText3D(data.trolley3.x, data.trolley3.y, data.trolley3.z+1, "[~r~E~w~] Loot the Cash", 0.40)
+                            DrawText3D(data.trolley3.x, data.trolley3.y, data.trolley3.z+1, "[~r~E~w~] Tag pengene", 0.40)
                             if dst1 < 1 and IsControlJustReleased(0, 38) then
                                 TriggerServerEvent("TOB_fh:lootup", name, "Loot3")
                                 StartGrab(name)
@@ -146,7 +153,7 @@ AddEventHandler("TOB_fh:policenotify", function(name)
     local blip = nil
 
     if IsPolice then
-        exports["mythic_notify"]:SendAlert("inform", "A bank's alarms are triggered!", 10000, {["background-color"] = "#CD472A", ["color"] = "#ffffff"})
+        exports["mythic_notify"]:SendAlert("inform", "En alarm i banken er blevet uløst!", 10000, {["background-color"] = "#CD472A", ["color"] = "#ffffff"})
         if not DoesBlipExist(blip) then
             blip = AddBlipForCoord(TOB.Banks[name].doors.startloc.x, TOB.Banks[name].doors.startloc.y, TOB.Banks[name].doors.startloc.z)
             SetBlipSprite(blip, 161)
@@ -192,9 +199,9 @@ AddEventHandler("TOB_fh:freezeDoors", function()
 
                         if dst <= 2.0 then
                             if v[i].locked then
-                                DrawText3D(v[i].txtloc[1], v[i].txtloc[2], v[i].txtloc[3], "[~r~E~w~] Unlock the door", 0.40)
+                                DrawText3D(v[i].txtloc[1], v[i].txtloc[2], v[i].txtloc[3], "[~r~E~w~] Åben døren", 0.40)
                             elseif not v[i].locked then
-                                DrawText3D(v[i].txtloc[1], v[i].txtloc[2], v[i].txtloc[3], "[~r~E~w~] Lock the door", 0.40)
+                                DrawText3D(v[i].txtloc[1], v[i].txtloc[2], v[i].txtloc[3], "[~r~E~w~] låse døren", 0.40)
                             end
                             if dst <= 1.5 and IsControlJustReleased(0, 38) then
                                 dooruse = true
@@ -264,9 +271,9 @@ AddEventHandler("TOB_fh:reset", function(name, data)
         LootCheck[name][i] = false
     end
     Check[name] = false
-    exports["mythic_notify"]:SendAlert("error", "VAULT DOOR WILL CLOSE IN 30 SECONDS!")
+    exports["mythic_notify"]:SendAlert("error", "Bank døren ville blive låst om 30 Sekunder!")
     Citizen.Wait(30000)
-    exports["mythic_notify"]:SendAlert("error", "VAULT DOOR CLOSING!")
+    exports["mythic_notify"]:SendAlert("error", "Bank døren lukker!")
     TriggerServerEvent("TOB_fh:toggleVault", name, true)
     TriggerEvent("TOB_fh:cleanUp", data, name)
 end)
@@ -292,7 +299,7 @@ AddEventHandler("TOB_fh:startheist", function(data, name)
 
     AttachEntityToEntity(IdProp, ped, boneIndex, 0.20, 0.038, 0.001, 10.0, 175.0, 0.0, true, true, false, true, 1, true)
     TaskStartScenarioInPlace(ped, "PROP_HUMAN_ATM", 0, true)
-    exports['progressBars']:startUI(2000, "Using Malicious Card")
+    exports['progressBars']:startUI(2000, "Bruger i idkort")
     Citizen.Wait(1500)
     DetachEntity(IdProp, false, false)
     SetEntityCoords(IdProp, data.prop.first.coords, 0.0, 0.0, 0.0, false)
@@ -303,12 +310,12 @@ AddEventHandler("TOB_fh:startheist", function(data, name)
     disableinput = false
     Citizen.Wait(1000)
     Process(TOB.hacktime, "Hack in Progress")
-    exports["mythic_notify"]:SendAlert("success", "Hacking complete!")
+    exports["mythic_notify"]:SendAlert("success", "Hacking udført!")
     PlaySoundFrontend(-1, "ATM_WINDOW", "HUD_FRONTEND_DEFAULT_SOUNDSET")
     TriggerServerEvent("TOB_fh:toggleVault", name, false)
     startdstcheck = true
     currentname = name
-    exports["mythic_notify"]:SendAlert("error", "You have 2 minutes until the security system activation.")
+    exports["mythic_notify"]:SendAlert("error", "Du har 2 minutter til at sikkerheds panlet genstarter.")
     SpawnTrolleys(data, name)
 end)
 
@@ -532,7 +539,7 @@ Citizen.CreateThread(function()
                     local dst = GetDistanceBetweenCoords(coords, v.doors.startloc.x, v.doors.startloc.y, v.doors.startloc.z, true)
 
                     if dst <= 2 and not Check[k] and not robbing then
-                        DrawText3D(v.doors.startloc.x, v.doors.startloc.y, v.doors.startloc.z, "[~r~E~w~] Start bank heist", 0.40)
+                        DrawText3D(v.doors.startloc.x, v.doors.startloc.y, v.doors.startloc.z, "[~r~E~w~] Start bank røveri", 0.40)
                         if dst <= 1 and IsControlJustReleased(0, 38) then
                             TriggerServerEvent("TOB_fh:startcheck", k)
                         end
