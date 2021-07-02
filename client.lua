@@ -271,8 +271,8 @@ AddEventHandler("TOB_fh:reset", function(name, data)
         LootCheck[name][i] = false
     end
     Check[name] = false
-    exports["mythic_notify"]:SendAlert("error", "Bank døren ville blive låst om 30 Sekunder!")
-    Citizen.Wait(30000)
+    exports["mythic_notify"]:SendAlert("error", "Bank døren ville blive låst om 10 Sekunder!")
+    Citizen.Wait(10000)
     exports["mythic_notify"]:SendAlert("error", "Bank døren lukker!")
     TriggerServerEvent("TOB_fh:toggleVault", name, true)
     TriggerEvent("TOB_fh:cleanUp", data, name)
