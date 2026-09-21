@@ -70,7 +70,6 @@ local function EndHeist(bank)
     for id, l in pairs(Looting) do
         if l.bank == bank then Looting[id] = nil end
     end
-    TriggerClientEvent("TOB_fh:resetDoorState", -1, bank)
 end
 
 local function CooldownLeft(bank)
@@ -146,8 +145,11 @@ end)
 
 RegisterServerEvent("TOB_fh:updateVaultState")
 AddEventHandler("TOB_fh:updateVaultState", function(key, state)
-    if Doors[key] == nil then return end
+    if Doors[key] == nil or type(state) ~= "number" then return end
+    if not IsNear(source, Doors[key][2].loc, 60.0) then return end
     Doors[key][2].state = state
+    -- Share the final vault angle, so players who weren't nearby see it correctly later
+    TriggerClientEvent("TOB_fh:vaultState", -1, key, state)
 end)
 
 RegisterServerEvent("TOB_fh:startLoot")
@@ -206,18 +208,6 @@ end)
 
 TOBBlaine.RegisterServerCallback("TOB_fh:getBanks", function(source, cb)
     cb(TOB.Banks, Doors)
-end)
-
-TOBBlaine.RegisterServerCallback("TOB_fh:checkSecond", function(source, cb)
-    local user_id = vRP.getUserId({source})
-    local item = vRP.getInventoryItemAmount({user_id, "secure_card"})
-
-    if item >= 1 then
-        vRP.tryGetInventoryItem({user_id, "secure_card", 1})
-        cb(true)
-    else
-        cb(false)
-    end
 end)
 
 -- Cop System

@@ -64,7 +64,7 @@ end
 -- Cop System 
 Citizen.CreateThread(function()
     while true do
-        Citizen.Wait(3000)
+        Citizen.Wait(10000)
         TriggerServerEvent('TOB_fh:CheckCop')
     end
 end)
@@ -79,11 +79,8 @@ AddEventHandler('TOB_fh:IsNOTCop', function()
     IsPolice = false
 end)
 
-Freeze = {B1 = 0}
-PlayerData = nil
 IsPolice = false
 Check = {B1 = false}
-SearchChecks = {B1 = false}
 LootCheck = {
     B1 = {Stop = false, Loot1 = false, Loot2 = false, Loot3 = false}
 }
@@ -94,20 +91,13 @@ local initiator = false
 local startdstcheck = false
 local currentname = nil
 local currentcoords = nil
-local done = true
 local dooruse = false
 local robbing = false
 
 Citizen.CreateThread(function() while true do local enabled = false Citizen.Wait(1) if disableinput then enabled = true DisableControl() end if not enabled then Citizen.Wait(500) end end end)
-function DrawText3D(x, y, z, text, scale) local onScreen, _x, _y = World3dToScreen2d(x, y, z) local pX, pY, pZ = table.unpack(GetGameplayCamCoords()) SetTextScale(scale, scale) SetTextFont(4) SetTextProportional(1) SetTextEntry("STRING") SetTextCentre(true) SetTextColour(255, 255, 255, 215) AddTextComponentString(text) DrawText(_x, _y) local factor = (string.len(text)) / 700 DrawRect(_x, _y + 0.0150, 0.095 + factor, 0.03, 41, 11, 41, 100) end
+function DrawText3D(x, y, z, text, scale) local onScreen, _x, _y = World3dToScreen2d(x, y, z) SetTextScale(scale, scale) SetTextFont(4) SetTextProportional(1) SetTextEntry("STRING") SetTextCentre(true) SetTextColour(255, 255, 255, 215) AddTextComponentString(text) DrawText(_x, _y) local factor = (string.len(text)) / 700 DrawRect(_x, _y + 0.0150, 0.095 + factor, 0.03, 41, 11, 41, 100) end
 function DisableControl() DisableControlAction(0, 73, false) DisableControlAction(0, 24, true) DisableControlAction(0, 257, true) DisableControlAction(0, 25, true) DisableControlAction(0, 263, true) DisableControlAction(0, 32, true) DisableControlAction(0, 34, true) DisableControlAction(0, 31, true) DisableControlAction(0, 30, true) DisableControlAction(0, 45, true) DisableControlAction(0, 22, true) DisableControlAction(0, 44, true) DisableControlAction(0, 37, true) DisableControlAction(0, 23, true) DisableControlAction(0, 288, true) DisableControlAction(0, 289, true) DisableControlAction(0, 170, true) DisableControlAction(0, 167, true) DisableControlAction(0, 73, true) DisableControlAction(2, 199, true) DisableControlAction(0, 47, true) DisableControlAction(0, 264, true) DisableControlAction(0, 257, true) DisableControlAction(0, 140, true) DisableControlAction(0, 141, true) DisableControlAction(0, 142, true) DisableControlAction(0, 143, true) end
 function ShowTimer() SetTextFont(0) SetTextProportional(0) SetTextScale(0.42, 0.42) SetTextDropShadow(0, 0, 0, 0,255) SetTextEdge(1, 0, 0, 0, 255) SetTextEntry("STRING") AddTextComponentString("~r~"..TOB.timer.."~w~") DrawText(0.682, 0.96) end
-local a={__gc=function(b)if b.destructor and b.handle then b.destructor(b.handle)end;b.destructor=nil;b.handle=nil end}local function c(d,e,f)return coroutine.wrap(function()local g,h=d()if not h or h==0 then f(g)return end;local b={handle=g,destructor=f}setmetatable(b,a)local i=true;repeat coroutine.yield(h)i,h=e(g)until not i;b.destructor,b.handle=nil,nil;f(g)end)end;function EnumerateObjects()return c(FindFirstObject,FindNextObject,EndFindObject)end;function GetObjects()local j={}for k in EnumerateObjects()do table.insert(j,k)end;return j end;function GetClosestObject(l,m)local j=GetObjects()local n=-1;local o=-1;local l=l;local m=m;if type(l)=='string'then if l~=''then l={l}end end;if m==nil then local p=PlayerPedId()m=GetEntityCoords(p)end;for q=1,#j,1 do local r=false;if l==nil or type(l)=='table'and#l==0 then r=true else local s=GetEntityModel(j[q])for t=1,#l,1 do if s==GetHashKey(l[t])then r=true end end end;if r then local u=GetEntityCoords(j[q])local v=GetDistanceBetweenCoords(u,m.x,m.y,m.z,true)if n==-1 or n>v then o=j[q]n=v end end end;return o,n end
-
-RegisterNetEvent("TOB_fh:resetDoorState")
-AddEventHandler("TOB_fh:resetDoorState", function(name)
-    Freeze[name] = 0
-end)
 
 RegisterNetEvent("TOB_fh:lootup_c")
 AddEventHandler("TOB_fh:lootup_c", function(var, var2)
@@ -148,10 +138,13 @@ AddEventHandler("TOB_fh:startLoot_c", function(data, name)
                 local dst = GetDistanceBetweenCoords(pedcoords, data.doors.startloc.x, data.doors.startloc.y, data.doors.startloc.z, true)
 
                 if dst < 40 then
+                    local sleep = 250
+
                     if not LootCheck[name].Loot1 then
                         local dst1 = GetDistanceBetweenCoords(pedcoords, data.trolley1.x, data.trolley1.y, data.trolley1.z + 1, true)
 
                         if dst1 < 5 and not useTarget and not IsPoliceJob() then
+                            sleep = 0
                             DrawText3D(data.trolley1.x, data.trolley1.y, data.trolley1.z+1, "[~r~E~w~] " .. L("loot"), 0.40)
                             if dst1 < 0.75 and IsControlJustReleased(0, 38) then
                                 TriggerServerEvent("TOB_fh:lootup", name, "Loot1")
@@ -164,6 +157,7 @@ AddEventHandler("TOB_fh:startLoot_c", function(data, name)
                         local dst1 = GetDistanceBetweenCoords(pedcoords, data.trolley2.x, data.trolley2.y, data.trolley2.z+1, true)
 
                         if dst1 < 5 and not useTarget and not IsPoliceJob() then
+                            sleep = 0
                             DrawText3D(data.trolley2.x, data.trolley2.y, data.trolley2.z+1, "[~r~E~w~] " .. L("loot"), 0.40)
                             if dst1 < 1 and IsControlJustReleased(0, 38) then
                                 TriggerServerEvent("TOB_fh:lootup", name, "Loot2")
@@ -176,6 +170,7 @@ AddEventHandler("TOB_fh:startLoot_c", function(data, name)
                         local dst1 = GetDistanceBetweenCoords(pedcoords, data.trolley3.x, data.trolley3.y, data.trolley3.z+1, true)
 
                         if dst1 < 5 and not useTarget and not IsPoliceJob() then
+                            sleep = 0
                             DrawText3D(data.trolley3.x, data.trolley3.y, data.trolley3.z+1, "[~r~E~w~] " .. L("loot"), 0.40)
                             if dst1 < 1 and IsControlJustReleased(0, 38) then
                                 TriggerServerEvent("TOB_fh:lootup", name, "Loot3")
@@ -193,7 +188,7 @@ AddEventHandler("TOB_fh:startLoot_c", function(data, name)
                         end
                         return
                     end
-                    Citizen.Wait(1)
+                    Citizen.Wait(sleep)
                 else
                     Citizen.Wait(1000)
                 end
@@ -266,8 +261,10 @@ AddEventHandler("TOB_fh:freezeDoors", function()
                     for i = 1, 2, 1 do
                         local dst = #(pcoords - v[i].loc)
 
-                        if dst <= 20.0 then
+                        if dst <= 5.0 then
                             sleep = 0
+                        elseif dst <= 30.0 and sleep > 250 then
+                            sleep = 250
                         end
                         if dst <= 2.0 then
                             if v[i].locked then
@@ -295,40 +292,32 @@ end)
 
 RegisterNetEvent("TOB_fh:toggleVault")
 AddEventHandler("TOB_fh:toggleVault", function(key, state)
+    local start = TOB.Banks[key].doors.startloc
+    local obj = GetClosestObjectOfType(start.x, start.y, start.z, 2.0, GetHashKey(TOB.vaultdoor), false, false, false)
+
+    Doors[key][2].locked = state
+    -- Only players near the bank have the vault loaded. Everyone else just keeps the state,
+    -- and gets the final door angle from the server (TOB_fh:vaultState).
+    if obj == 0 then
+        return
+    end
     dooruse = true
     Doors[key][2].state = nil
-    if TOB.Banks[key].hash == nil then
-        if not state then
-            local obj = GetClosestObjectOfType(TOB.Banks[key].doors.startloc.x, TOB.Banks[key].doors.startloc.y, TOB.Banks[key].doors.startloc.z, 2.0, GetHashKey(TOB.vaultdoor), false, false, false)
-            local count = 0
-
-            repeat
-                local heading = GetEntityHeading(obj) + 0.10
-
-                SetEntityHeading(obj, heading)
-                count = count + 1
-                Citizen.Wait(10)
-            until count == 900
-            Doors[key][2].locked = state
-            Doors[key][2].state = GetEntityHeading(obj)
-            TriggerServerEvent("TOB_fh:updateVaultState", key, Doors[key][2].state)
-        elseif state then
-            local obj = GetClosestObjectOfType(TOB.Banks[key].doors.startloc.x, TOB.Banks[key].doors.startloc.y, TOB.Banks[key].doors.startloc.z, 2.0, GetHashKey(TOB.vaultdoor), false, false, false)
-            local count = 0
-
-            repeat
-                local heading = GetEntityHeading(obj) - 0.10
-
-                SetEntityHeading(obj, heading)
-                count = count + 1
-                Citizen.Wait(10)
-            until count == 900
-            Doors[key][2].locked = state
-            Doors[key][2].state = GetEntityHeading(obj)
-            TriggerServerEvent("TOB_fh:updateVaultState", key, Doors[key][2].state)
-        end
+    local step = state and 0.10 or -0.10
+    for _ = 1, 900 do
+        SetEntityHeading(obj, GetEntityHeading(obj) + step)
+        Citizen.Wait(10)
     end
+    Doors[key][2].state = GetEntityHeading(obj)
+    TriggerServerEvent("TOB_fh:updateVaultState", key, Doors[key][2].state)
     dooruse = false
+end)
+
+RegisterNetEvent("TOB_fh:vaultState")
+AddEventHandler("TOB_fh:vaultState", function(key, heading)
+    if Doors[key] ~= nil then
+        Doors[key][2].state = heading
+    end
 end)
 
 AddEventHandler("TOB_fh:reset", function(name, data)
@@ -419,9 +408,6 @@ AddEventHandler("TOB_fh:cleanUp", function(data, name)
     if DoesEntityExist(IdProp) then
         DeleteEntity(IdProp)
     end
-    if DoesEntityExist(IdProp2) then
-        DeleteEntity(IdProp2)
-    end
     TriggerServerEvent("TOB_fh:setCooldown", name)
     initiator = false
     robbing = false
@@ -448,7 +434,6 @@ function SpawnTrolleys(data, name)
     SetEntityHeading(Trolley2, h2 + TOB.Banks[name].trolley2.h)
     SetEntityHeading(Trolley3, h3 + TOB.Banks[name].trolley3.h)
     TriggerServerEvent("TOB_fh:startLoot", data, name)
-    done = false
 end
 
 function StartGrab(name, trolleyCoords)
@@ -551,21 +536,14 @@ end
 
 Citizen.CreateThread(function()
     while true do
-        if startdstcheck then
-            if initiator then
-                local playercoord = GetEntityCoords(PlayerPedId())
-
-                if (GetDistanceBetweenCoords(playercoord, currentcoords, true)) > 20 then
-                    LootCheck[currentname].Stop = true
-                    startdstcheck = false
-                    TriggerServerEvent("TOB_fh:stopHeist", currentname)
-                end
+        if startdstcheck and initiator then
+            if #(GetEntityCoords(PlayerPedId()) - currentcoords) > 20 then
+                LootCheck[currentname].Stop = true
+                startdstcheck = false
+                TriggerServerEvent("TOB_fh:stopHeist", currentname)
             end
-            Citizen.Wait(1)
-        else
-            Citizen.Wait(1000)
         end
-        Citizen.Wait(1)
+        Citizen.Wait(500)
     end
 end)
 
@@ -625,8 +603,10 @@ Citizen.CreateThread(function()
                 if not v.onaction then
                     local dst = #(coords - vector3(v.doors.startloc.x, v.doors.startloc.y, v.doors.startloc.z))
 
-                    if dst <= 20 then
+                    if dst <= 6 then
                         sleep = 0
+                    elseif dst <= 30 and sleep > 250 then
+                        sleep = 250
                     end
                     if dst <= 2 and not Check[k] and not robbing then
                         DrawText3D(v.doors.startloc.x, v.doors.startloc.y, v.doors.startloc.z, "[~r~E~w~] " .. L("start_heist"), 0.40)
@@ -726,18 +706,4 @@ function RegisterTargets()
             })
         end
     end
-end
-
--- SEARCH FOR ID CARD UPDATE --
-
-function Lockpick(name)
-    local player = PlayerPedId()
-
-    RequestAnimDict("mp_arresting")
-    while not HasAnimDictLoaded("mp_arresting") do
-        RequestAnimDict("mp_arresting")
-        Citizen.Wait(10)
-    end
-    SetEntityCoords(player, loc.x, loc.y, loc.z, 1, 0, 0, 1)
-    SetEntityHeading(player, loc.h)
 end

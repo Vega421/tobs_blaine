@@ -3,7 +3,7 @@ game "gta5"
 
 author "Vega"
 description "Paleto Bay bank heist for vRP"
-version "1.2.0"
+version "1.2.1"
 
 shared_scripts {"TOB.lua", "locales.lua"}
 client_scripts {"serverCallbackLib/client.lua", "client.lua"}
