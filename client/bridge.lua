@@ -1,4 +1,4 @@
--- vRP bridge (client). Everything framework-specific lives here; the heist itself is in client.lua.
+-- vRP bridge (client). Everything framework-specific lives here; the heist itself is in client/main.lua.
 
 Bridge = {NotifyFallback = "native"}
 local isPolice = false

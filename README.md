@@ -16,7 +16,7 @@ Paleto Bay bank heist for vRP FiveM servers. A rewrite of utku's Fleeca bank rob
 1. Download the zip from [Releases](https://github.com/Vega421/tobs_blaine/releases/latest) and unzip it into `resources/`.
 2. Add the `id_card_f` item to your vRP items config.
 3. Add `ensure tobs_blaine` to `server.cfg` after vRP.
-4. Settings are in `TOB.lua`.
+4. Settings are in `config/config.lua`.
 
 ## License
 

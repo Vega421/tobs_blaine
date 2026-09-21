@@ -3,8 +3,8 @@ game "gta5"
 
 author "Vega"
 description "Paleto Bay bank heist for vRP"
-version "1.3.0"
+version "1.3.1"
 
-shared_scripts {"TOB.lua", "locales.lua"}
-client_scripts {"serverCallbackLib/client.lua", "bridge/client.lua", "client.lua"}
-server_scripts {"@vrp/lib/utils.lua", "config_server.lua", "serverCallbackLib/server.lua", "bridge/server.lua", "server.lua"}
+shared_scripts {"config/config.lua", "locales/locales.lua"}
+client_scripts {"client/callbacks.lua", "client/bridge.lua", "client/main.lua"}
+server_scripts {"@vrp/lib/utils.lua", "config/config_server.lua", "server/callbacks.lua", "server/bridge.lua", "server/main.lua"}

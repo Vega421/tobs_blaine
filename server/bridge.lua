@@ -1,4 +1,4 @@
--- vRP bridge (server). Everything framework-specific lives here; the heist itself is in server.lua.
+-- vRP bridge (server). Everything framework-specific lives here; the heist itself is in server/main.lua.
 
 local Tunnel = module("vrp", "lib/Tunnel")
 local Proxy = module("vrp", "lib/Proxy")
