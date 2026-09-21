@@ -3,110 +3,212 @@ local Proxy = module("vrp", "lib/Proxy")
 
 vRP = Proxy.getInterface("vRP")
 
-
-ServerPlayers = true  
-Doors = { 
+Doors = {
     ["B1"] = {{loc = vector3(-105.15334320068,6472.7075195312,31.626728057861), h = 42.639282226562, txtloc = vector3(-105.34651184082,6472.708984375,31.626726150513), obj = nil, locked = false}, {loc = vector3(-105.84294891357,6475.4428710938,31.62670135498), txtloc = vector3(-105.84294891357,6475.4428710938,31.62670135498), obj = nil, locked = false}},
 }
 
+MSG = {
+    nocops = "Der er ikke nok Politi i byen.",
+    nocard = "Du har ikke et idkort.",
+    busy = "Der er et røveri igang i banken.",
+    cooldown = "Denne bank er fornyligt været røveret du skal vente ",
+}
 
+function IsPolice(src)
+    local user_id = vRP.getUserId({src})
+    return user_id ~= nil and vRP.hasGroup({user_id, TOB.PoliceGroup})
+end
+
+function CountPolice()
+    local count = 0
+    for user_id, _ in pairs(vRP.getUsers({})) do
+        if vRP.hasGroup({user_id, TOB.PoliceGroup}) then count = count + 1 end
+    end
+    return count
+end
+
+function HasCard(src)
+    local user_id = vRP.getUserId({src})
+    return user_id ~= nil and vRP.getInventoryItemAmount({user_id, "id_card_f"}) >= 1
+end
+
+function TakeCard(src)
+    vRP.tryGetInventoryItem({vRP.getUserId({src}), "id_card_f", 1})
+end
+
+function GiveReward(src, amount)
+    local user_id = vRP.getUserId({src})
+    if user_id == nil then return end
+    if TOB.black then
+        vRP.giveInventoryItem({user_id, TOB.blackmoney, amount})
+    else
+        vRP.giveMoney({user_id, amount})
+    end
+end
+
+-- Heist state lives on the server, so a cheater can't trigger payouts,
+-- doors or heist events from their own game.
+local Owner = {}    -- [bank] = server id of the player who started the heist
+local Looted = {}   -- [bank] = {Loot1 = true, ...}
+local Looting = {}  -- [server id] = {bank, started, last, piles}
+local Trolleys = {Loot1 = "trolley1", Loot2 = "trolley2", Loot3 = "trolley3"}
+local GRAB_WINDOW = 50000 -- ms a player can collect piles after starting a trolley (the animation is about 40 s)
+local MIN_PILE_GAP = 250  -- ms between two piles
+
+-- Returns true when the player is within maxDist of pos.
+-- Without OneSync the server can't see player positions, so the check is skipped.
+local function IsNear(src, pos, maxDist)
+    local ped = GetPlayerPed(src)
+    if not ped or ped == 0 then return true end
+    local coords = GetEntityCoords(ped)
+    if coords.x == 0.0 and coords.y == 0.0 and coords.z == 0.0 then return true end
+    return #(coords - vector3(pos.x, pos.y, pos.z)) <= maxDist
+end
+
+local function IsHeistOwner(src, bank)
+    return TOB.Banks[bank] ~= nil and TOB.Banks[bank].onaction and Owner[bank] == src
+end
+
+local function EndHeist(bank)
+    TOB.Banks[bank].lastrobbed = os.time()
+    TOB.Banks[bank].onaction = false
+    Owner[bank] = nil
+    Looted[bank] = nil
+    for id, l in pairs(Looting) do
+        if l.bank == bank then Looting[id] = nil end
+    end
+    TriggerClientEvent("TOB_fh:resetDoorState", -1, bank)
+end
+
+local function CooldownLeft(bank)
+    local left = TOB.cooldown - (os.time() - TOB.Banks[bank].lastrobbed)
+    return string.format("%d:%02d", math.floor(left / 60), math.floor(math.fmod(left, 60)))
+end
 
 RegisterServerEvent("TOB_fh:startcheck")
 AddEventHandler("TOB_fh:startcheck", function(bank)
     local _source = source
-    local copcount = 0
-    local Players = vRP.getUsers()
 
-    for i = 1, #Players, 1 do
-        local xPlayer = vRP.getUserId({Players[i]})
-        if vRP.hasGroup({xPlayer, TOB.PoliceGroup}) then
-            copcount = copcount + 1
-        end
-    end
-    local xPlayer = vRP.getUserId({_source})
-    local item = vRP.getInventoryItemAmount({xPlayer,"id_card_f"})
+    if TOB.Banks[bank] == nil or IsPolice(_source) then return end
+    if not IsNear(_source, TOB.Banks[bank].doors.startloc, 5.0) then return end
 
-    if copcount >= TOB.mincops then
-        if item >= 1 then
+    if CountPolice() >= TOB.mincops then
+        if HasCard(_source) then
             if not TOB.Banks[bank].onaction == true then
                 if (os.time() - TOB.cooldown) > TOB.Banks[bank].lastrobbed then
                     TOB.Banks[bank].onaction = true
-                    vRP.tryGetInventoryItem({xPlayer,"id_card_f",1})
+                    Owner[bank] = _source
+                    Looted[bank] = {}
+                    TakeCard(_source)
                     TriggerClientEvent("TOB_fh:outcome", _source, true, bank)
                     TriggerClientEvent("TOB_fh:policenotify", -1, bank)
                 else
-                    TriggerClientEvent("TOB_fh:outcome", _source, false, "Denne bank er fornyligt været røveret du skal vente "..math.floor((TOB.cooldown - (os.time() - TOB.Banks[bank].lastrobbed)) / 60)..":"..math.fmod((TOB.cooldown - (os.time() - TOB.Banks[bank].lastrobbed)), 60))
+                    TriggerClientEvent("TOB_fh:outcome", _source, false, MSG.cooldown .. CooldownLeft(bank))
                 end
             else
-                TriggerClientEvent("TOB_fh:outcome", _source, false, "Der er et røveri igang i banken.")
+                TriggerClientEvent("TOB_fh:outcome", _source, false, MSG.busy)
             end
         else
-            TriggerClientEvent("TOB_fh:outcome", _source, false, "Du har ikke et idkort.")
+            TriggerClientEvent("TOB_fh:outcome", _source, false, MSG.nocard)
         end
     else
-        TriggerClientEvent("TOB_fh:outcome", _source, false, "Der er ikke nok Politi i byen.")
+        TriggerClientEvent("TOB_fh:outcome", _source, false, MSG.nocops)
     end
 end)
 
 RegisterServerEvent("TOB_fh:lootup")
-AddEventHandler("TOB_fh:lootup", function(var, var2)
-    TriggerClientEvent("TOB_fh:lootup_c", -1, var, var2)
-end)
+AddEventHandler("TOB_fh:lootup", function(bank, trolley)
+    local _source = source
 
-RegisterServerEvent("TOB_fh:openDoor")
-AddEventHandler("TOB_fh:openDoor", function(coords, method)
-    TriggerClientEvent("TOB_fh:openDoor_c", -1, coords, method)
+    if TOB.Banks[bank] == nil or not TOB.Banks[bank].onaction or Trolleys[trolley] == nil then return end
+    if IsPolice(_source) then return end
+    Looted[bank] = Looted[bank] or {}
+    if Looted[bank][trolley] then return end
+    if not IsNear(_source, TOB.Banks[bank][Trolleys[trolley]], 5.0) then return end
+
+    Looted[bank][trolley] = true
+    Looting[_source] = {bank = bank, started = GetGameTimer(), last = 0, piles = 0}
+    TriggerClientEvent("TOB_fh:lootup_c", -1, bank, trolley)
 end)
 
 RegisterServerEvent("TOB_fh:toggleDoor")
 AddEventHandler("TOB_fh:toggleDoor", function(key, state)
+    local _source = source
+
+    if Doors[key] == nil then return end
+    if not (IsPolice(_source) or IsHeistOwner(_source, key)) then return end
     Doors[key][1].locked = state
     TriggerClientEvent("TOB_fh:toggleDoor", -1, key, state)
 end)
 
 RegisterServerEvent("TOB_fh:toggleVault")
 AddEventHandler("TOB_fh:toggleVault", function(key, state)
+    local _source = source
+
+    if Doors[key] == nil then return end
+    if not (IsPolice(_source) or IsHeistOwner(_source, key)) then return end
     Doors[key][2].locked = state
     TriggerClientEvent("TOB_fh:toggleVault", -1, key, state)
 end)
 
 RegisterServerEvent("TOB_fh:updateVaultState")
 AddEventHandler("TOB_fh:updateVaultState", function(key, state)
+    if Doors[key] == nil then return end
     Doors[key][2].state = state
 end)
 
 RegisterServerEvent("TOB_fh:startLoot")
-AddEventHandler("TOB_fh:startLoot", function(data, name, players)
+AddEventHandler("TOB_fh:startLoot", function(_, name)
     local _source = source
 
-    if ServerPlayers then
-        TriggerClientEvent("TOB_fh:startLoot_c", data, name)
+    if not IsHeistOwner(_source, name) then return end
+    -- Everyone near the bank can loot. Bank data comes from the server, not the client.
+    for _, id in ipairs(GetPlayers()) do
+        id = tonumber(id)
+        if id == _source or IsNear(id, TOB.Banks[name].doors.startloc, 60.0) then
+            TriggerClientEvent("TOB_fh:startLoot_c", id, TOB.Banks[name], name)
+        end
     end
-    TriggerClientEvent("TOB_fh:startLoot_c", _source, data, name)
 end)
 
 RegisterServerEvent("TOB_fh:stopHeist")
 AddEventHandler("TOB_fh:stopHeist", function(name)
+    if not IsHeistOwner(source, name) then return end
     TriggerClientEvent("TOB_fh:stopHeist_c", -1, name)
 end)
 
 RegisterServerEvent("TOB_fh:rewardCash")
 AddEventHandler("TOB_fh:rewardCash", function()
-    local xPlayer = vRP.getUserId({source})
-    local reward = math.random(TOB.mincash, TOB.maxcash)
+    local _source = source
+    local l = Looting[_source]
 
-    if TOB.black then
-        vRP.giveInventoryItem({xPlayer,TOB.blackmoney, reward})
-    else
-        vRP.giveMoney({xPlayer,reward})
-    end
+    if l == nil then return end
+    local now = GetGameTimer()
+    if now - l.started > GRAB_WINDOW or now - l.last < MIN_PILE_GAP or l.piles >= TOB.MaxPiles then return end
+    l.piles = l.piles + 1
+    l.last = now
+    GiveReward(_source, math.random(TOB.mincash, TOB.maxcash))
 end)
 
 RegisterServerEvent("TOB_fh:setCooldown")
 AddEventHandler("TOB_fh:setCooldown", function(name)
-    TOB.Banks[name].lastrobbed = os.time()
-    TOB.Banks[name].onaction = false
-    TriggerClientEvent("TOB_fh:resetDoorState", -1, name)
+    if not IsHeistOwner(source, name) then return end
+    EndHeist(name)
+end)
+
+-- If the player who started the heist leaves, close the vault and end the heist
+AddEventHandler("playerDropped", function()
+    local _source = source
+
+    Looting[_source] = nil
+    for bank, owner in pairs(Owner) do
+        if owner == _source then
+            TriggerClientEvent("TOB_fh:stopHeist_c", -1, bank)
+            Doors[bank][2].locked = true
+            TriggerClientEvent("TOB_fh:toggleVault", -1, bank, true)
+            EndHeist(bank)
+        end
+    end
 end)
 
 TOBBlaine.RegisterServerCallback("TOB_fh:getBanks", function(source, cb)
@@ -114,11 +216,11 @@ TOBBlaine.RegisterServerCallback("TOB_fh:getBanks", function(source, cb)
 end)
 
 TOBBlaine.RegisterServerCallback("TOB_fh:checkSecond", function(source, cb)
-    local xPlayer = vRP.getUserId({source})
-    local item = vRP.getInventoryItemAmount({xPlayer,"secure_card",1})
+    local user_id = vRP.getUserId({source})
+    local item = vRP.getInventoryItemAmount({user_id, "secure_card"})
 
     if item >= 1 then
-        vRP.tryGetInventoryItem({xPlayer,"secure_card",1})
+        vRP.tryGetInventoryItem({user_id, "secure_card", 1})
         cb(true)
     else
         cb(false)
@@ -129,11 +231,10 @@ end)
 RegisterServerEvent('TOB_fh:CheckCop')
 AddEventHandler('TOB_fh:CheckCop', function()
     local _source = source
-    local xPlayer = vRP.getUserId({_source})
-    
-    if vRP.hasGroup({xPlayer, TOB.PoliceGroup}) then
-		TriggerClientEvent('TOB_fh:IsCop', _source)
-	else
-		TriggerClientEvent('TOB_fh:IsNOTCop', _source)
-	end
+
+    if IsPolice(_source) then
+        TriggerClientEvent('TOB_fh:IsCop', _source)
+    else
+        TriggerClientEvent('TOB_fh:IsNOTCop', _source)
+    end
 end)

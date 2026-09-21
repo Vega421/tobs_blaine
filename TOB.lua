@@ -1,10 +1,11 @@
 TOB = {}
 TOB.timer = 300 -- seconds before the doors lock again
 TOB.hacktime = 1000 -- hack duration in milliseconds (1000 = 1 second). Raise it (e.g. 150000 = 2.5 min) to give police time to arrive
-TOB.maxcash = 6500 -- maximum cash per trolley
-TOB.mincash = 3000 -- minimum cash per trolley
+TOB.maxcash = 6500 -- maximum cash per cash pile (a trolley has many piles)
+TOB.mincash = 3000 -- minimum cash per cash pile
 TOB.black = false -- true gives the TOB.blackmoney item instead of cash
 TOB.blackmoney = "dirty_money" -- item given when TOB.black is true
+TOB.MaxPiles = 60 -- anti-cheat: most cash piles one player can be paid for per trolley
 TOB.cooldown = 600 -- seconds before the bank can be robbed again (600 = 10 min)
 TOB.mincops = 4 -- police needed online to start the heist
 TOB.vaultdoor = "v_ilev_cbankvauldoor01"
