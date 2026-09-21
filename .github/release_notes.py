@@ -10,7 +10,7 @@ FRAMEWORK = "vRP"
 ZIP = "tobs_blaine-vrp-v{version}.zip"
 DEPENDENCY = "vrp"
 ITEMS = "Add `id_card_f` to `vrp/cfg/items.lua`."
-DOCS = "https://vega421.github.io/script-docs/scripts/tobs-blaine/"
+DOCS = "https://vega421.github.io/scripts/tobs-blaine/"
 
 version = sys.argv[1].lstrip("v")
 changelog = open("CHANGELOG.md", encoding="utf-8").read()
