@@ -19,10 +19,11 @@ jobs:
           cp -r fxmanifest.lua config locales client server stream LICENSE dist/tobs_blaine/
           cd dist && zip -r "tobs_blaine-vrp-${GITHUB_REF_NAME}.zip" tobs_blaine
 
+      - name: Release notes from CHANGELOG.md
+        run: python3 .github/release_notes.py "${GITHUB_REF_NAME}" > notes.md
+
       - uses: softprops/action-gh-release@v2
         with:
+          name: tobs_blaine ${{ github.ref_name }} (vRP)
+          body_path: notes.md
           files: dist/*.zip
-          body: |
-            **Install:** download `tobs_blaine-vrp-${{ github.ref_name }}.zip` below, unzip it into your server's `resources` folder and add `ensure tobs_blaine` to `server.cfg`.
-
-            📖 Full docs and changelog: https://vega421.github.io/script-docs/scripts/tobs-blaine-vrp/
