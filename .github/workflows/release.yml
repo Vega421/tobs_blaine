@@ -16,7 +16,7 @@ jobs:
       - name: Build zip
         run: |
           mkdir -p dist/tobs_blaine
-          cp -r fxmanifest.lua TOB.lua client.lua server.lua serverCallbackLib stream LICENSE dist/tobs_blaine/
+          cp -r fxmanifest.lua TOB.lua locales.lua config_server.lua client.lua server.lua bridge serverCallbackLib stream LICENSE dist/tobs_blaine/
           cd dist && zip -r "tobs_blaine-vrp-${GITHUB_REF_NAME}.zip" tobs_blaine
 
       - uses: softprops/action-gh-release@v2
