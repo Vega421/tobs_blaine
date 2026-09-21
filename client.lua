@@ -1,11 +1,28 @@
-HT = nil
+-- Notifications. Pick a system with TOB.Notify in TOB.lua.
+function Notify(ntype, msg, duration)
+    duration = duration or 5000
+    local mode = TOB.Notify
 
-Citizen.CreateThread(function()
-    while HT == nil do
-        TriggerEvent('HT_base:getBaseObjects', function(obj) HT = obj end)
-        Citizen.Wait(0)
+    if mode == "auto" then
+        if GetResourceState("ox_lib") == "started" then
+            mode = "ox_lib"
+        elseif GetResourceState("mythic_notify") == "started" then
+            mode = "mythic_notify"
+        else
+            mode = "native"
+        end
     end
-end)
+
+    if mode == "ox_lib" then
+        TriggerEvent("ox_lib:notify", {title = TOB.NotifyTitle, description = msg, type = ntype, duration = duration})
+    elseif mode == "mythic_notify" then
+        exports["mythic_notify"]:SendAlert(ntype == "warning" and "error" or ntype, msg, duration)
+    else
+        BeginTextCommandThefeedPost("STRING")
+        AddTextComponentSubstringPlayerName(msg)
+        EndTextCommandThefeedPostTicker(false, true)
+    end
+end
 
 
 -- Cop System 
@@ -74,7 +91,7 @@ AddEventHandler("TOB_fh:outcome", function(oc, arg)
         Check[arg] = true
         TriggerEvent("TOB_fh:startheist", TOB.Banks[arg], arg)
     elseif not oc then
-        exports["mythic_notify"]:SendAlert("error", arg)
+        Notify("error", arg)
     end
 end)
 
@@ -149,11 +166,10 @@ end)
 
 RegisterNetEvent("TOB_fh:policenotify")
 AddEventHandler("TOB_fh:policenotify", function(name)
-    local PlayerData = vRP.getUsers()
     local blip = nil
 
     if IsPolice then
-        exports["mythic_notify"]:SendAlert("inform", "En alarm i banken er blevet uløst!", 10000, {["background-color"] = "#CD472A", ["color"] = "#ffffff"})
+        Notify("warning", "En alarm i banken er blevet uløst!", 10000)
         if not DoesBlipExist(blip) then
             blip = AddBlipForCoord(TOB.Banks[name].doors.startloc.x, TOB.Banks[name].doors.startloc.y, TOB.Banks[name].doors.startloc.z)
             SetBlipSprite(blip, 161)
@@ -271,9 +287,9 @@ AddEventHandler("TOB_fh:reset", function(name, data)
         LootCheck[name][i] = false
     end
     Check[name] = false
-    exports["mythic_notify"]:SendAlert("error", "Bank døren ville blive låst om 10 Sekunder!")
+    Notify("error", "Bank døren ville blive låst om 10 Sekunder!")
     Citizen.Wait(10000)
-    exports["mythic_notify"]:SendAlert("error", "Bank døren lukker!")
+    Notify("error", "Bank døren lukker!")
     TriggerServerEvent("TOB_fh:toggleVault", name, true)
     TriggerEvent("TOB_fh:cleanUp", data, name)
 end)
@@ -310,12 +326,12 @@ AddEventHandler("TOB_fh:startheist", function(data, name)
     disableinput = false
     Citizen.Wait(1000)
     Process(TOB.hacktime, "Hack in Progress")
-    exports["mythic_notify"]:SendAlert("success", "Hacking udført!")
+    Notify("success", "Hacking udført!")
     PlaySoundFrontend(-1, "ATM_WINDOW", "HUD_FRONTEND_DEFAULT_SOUNDSET")
     TriggerServerEvent("TOB_fh:toggleVault", name, false)
     startdstcheck = true
     currentname = name
-    exports["mythic_notify"]:SendAlert("error", "Du har 2 minutter til at sikkerheds panlet genstarter.")
+    Notify("error", "Du har 2 minutter til at sikkerheds panlet genstarter.")
     SpawnTrolleys(data, name)
 end)
 

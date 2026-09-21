@@ -3,10 +3,6 @@ local Proxy = module("vrp", "lib/Proxy")
 
 vRP = Proxy.getInterface("vRP")
 
-HT = nil
-
-TriggerEvent('HT_base:getBaseObjects', function(obj) HT = obj end)
-
 
 ServerPlayers = true  
 Doors = { 
@@ -23,8 +19,7 @@ AddEventHandler("TOB_fh:startcheck", function(bank)
 
     for i = 1, #Players, 1 do
         local xPlayer = vRP.getUserId({Players[i]})
-        if vRP.hasGroup({xPlayer, "Politi-Job"}) then
-      --  if vRP.hasPermission({xPlayer, TOB.PolicePermission}) then
+        if vRP.hasGroup({xPlayer, TOB.PoliceGroup}) then
             copcount = copcount + 1
         end
     end
@@ -133,12 +128,12 @@ end)
 -- Cop System
 RegisterServerEvent('TOB_fh:CheckCop')
 AddEventHandler('TOB_fh:CheckCop', function()
-    local xPlayer = vRP.getUserId({source})
+    local _source = source
+    local xPlayer = vRP.getUserId({_source})
     
-    if vRP.hasGroup({xPlayer, "Politi-Job"}) then
-	--if vRP.hasPermission({xPlayer,TOB.PolicePermission}) then
-		TriggerClientEvent('TOB_fh:IsCop', xPlayer)
+    if vRP.hasGroup({xPlayer, TOB.PoliceGroup}) then
+		TriggerClientEvent('TOB_fh:IsCop', _source)
 	else
-		TriggerClientEvent('TOB_fh:IsNOTCop', xPlayer)
+		TriggerClientEvent('TOB_fh:IsNOTCop', _source)
 	end
 end)

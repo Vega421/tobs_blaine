@@ -1,4 +1,9 @@
-fx_version "adamant"
+fx_version "cerulean"
 game "gta5"
-client_scripts {"lib/Tunnel.lua", "lib/Proxy.lua", 'serverCallbackLib/client.lua', 'TOB.lua', 'client.lua'}
-server_scripts {'@vrp/lib/utils.lua', 'serverCallbackLib/server.lua', 'TOB.lua', 'server.lua'}
+
+author "Vega"
+description "Paleto Bay bank heist for vRP"
+version "1.1.0"
+
+client_scripts {"serverCallbackLib/client.lua", "TOB.lua", "client.lua"}
+server_scripts {"@vrp/lib/utils.lua", "serverCallbackLib/server.lua", "TOB.lua", "server.lua"}
