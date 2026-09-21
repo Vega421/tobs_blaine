@@ -7,13 +7,6 @@ Doors = {
     ["B1"] = {{loc = vector3(-105.15334320068,6472.7075195312,31.626728057861), h = 42.639282226562, txtloc = vector3(-105.34651184082,6472.708984375,31.626726150513), obj = nil, locked = false}, {loc = vector3(-105.84294891357,6475.4428710938,31.62670135498), txtloc = vector3(-105.84294891357,6475.4428710938,31.62670135498), obj = nil, locked = false}},
 }
 
-MSG = {
-    nocops = "Der er ikke nok Politi i byen.",
-    nocard = "Du har ikke et idkort.",
-    busy = "Der er et røveri igang i banken.",
-    cooldown = "Denne bank er fornyligt været røveret du skal vente ",
-}
-
 function IsPolice(src)
     local user_id = vRP.getUserId({src})
     return user_id ~= nil and vRP.hasGroup({user_id, TOB.PoliceGroup})
@@ -103,16 +96,16 @@ AddEventHandler("TOB_fh:startcheck", function(bank)
                     TriggerClientEvent("TOB_fh:outcome", _source, true, bank)
                     TriggerClientEvent("TOB_fh:policenotify", -1, bank)
                 else
-                    TriggerClientEvent("TOB_fh:outcome", _source, false, MSG.cooldown .. CooldownLeft(bank))
+                    TriggerClientEvent("TOB_fh:outcome", _source, false, L("cooldown", CooldownLeft(bank)))
                 end
             else
-                TriggerClientEvent("TOB_fh:outcome", _source, false, MSG.busy)
+                TriggerClientEvent("TOB_fh:outcome", _source, false, L("busy"))
             end
         else
-            TriggerClientEvent("TOB_fh:outcome", _source, false, MSG.nocard)
+            TriggerClientEvent("TOB_fh:outcome", _source, false, L("no_card"))
         end
     else
-        TriggerClientEvent("TOB_fh:outcome", _source, false, MSG.nocops)
+        TriggerClientEvent("TOB_fh:outcome", _source, false, L("no_cops"))
     end
 end)
 
