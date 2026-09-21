@@ -2,8 +2,8 @@ fx_version "cerulean"
 game "gta5"
 
 author "Vega"
-description "Paleto Bay bank heist for vRP"
-version "1.3.1"
+description "Paleto and Fleeca bank heists for vRP"
+version "1.4.0"
 
 shared_scripts {"config/config.lua", "locales/locales.lua"}
 client_scripts {"client/callbacks.lua", "client/bridge.lua", "client/main.lua"}
