@@ -7,8 +7,9 @@ Paleto Bay bank heist for vRP FiveM servers. A rewrite of utku's Fleeca bank rob
 ## Requirements
 
 - vRP
-- `progressBars`
-- Notifications: [ox_lib](https://github.com/overextended/ox_lib) (recommended), `mythic_notify`, or none (GTA notifications)
+- [ox_lib](https://github.com/overextended/ox_lib) (recommended): notifications, progress bars and the hacking minigame
+- [ox_target](https://github.com/overextended/ox_target) (optional): look-and-click instead of press E
+- `progressBars`: only needed if you don't run ox_lib
 
 ## Install
 
