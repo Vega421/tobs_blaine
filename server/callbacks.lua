@@ -5,7 +5,7 @@ RegisterServerEvent('TOBBlaine:triggerServerCallback')
 AddEventHandler('TOBBlaine:triggerServerCallback', function(name, requestId, ...)
 	local _source = source
 
-	TOBBlaine.TriggerServerCallback(name, requestID, _source, function(...)
+	TOBBlaine.TriggerServerCallback(name, requestId, _source, function(...)
 		TriggerClientEvent('TOBBlaine:serverCallback', _source, requestId, ...)
 	end, ...)
 end)
